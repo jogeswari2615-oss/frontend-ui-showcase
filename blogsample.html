@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrendVerse | Modern Viral Blog Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* CSS RESET & VARIABLES */
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --accent: #ff4757; 
+            --accent-hover: #e03d4b;
+            --nav-bg: #ffffff;
+            --text-main: #1c1e21;
+            --text-muted: #65676b;
+            --border: #dddfe2;
+            --input-bg: #f0f2f5;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #18191a;
+            --card-bg: #242526;
+            --accent: #ff4757;
+            --nav-bg: #242526;
+            --text-main: #e4e6eb;
+            --text-muted: #b0b3b8;
+            --border: #3e4042;
+            --input-bg: #3a3b3c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Navigation */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 10%;
+            background: var(--nav-bg);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: background 0.3s, border 0.3s;
+        }
+
+        .logo { font-size: 1.8rem; font-weight: 800; cursor: pointer; }
+        .logo span { color: var(--accent); }
+
+        .search-container {
+            background: var(--input-bg);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            width: 30%;
+            transition: background 0.3s;
+        }
+
+        .search-container input {
+            border: none;
+            background: transparent;
+            outline: none;
+            width: 100%;
+            margin-left: 8px;
+            color: var(--text-main);
+        }
+
+        .nav-right { display: flex; align-items: center; gap: 25px; }
+        .nav-links { list-style: none; display: flex; gap: 20px; }
+        .nav-links li { cursor: pointer; font-weight: 600; color: var(--text-muted); transition: 0.3s; }
+        .nav-links li:hover, .nav-links li.active { color: var(--accent); }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.3s;
+        }
+        .theme-toggle:hover { color: var(--accent); }
+
+        /* Main Content Grid */
+        .main-layout {
+            max-width: 1000px;
+            margin: 30px auto;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 30px;
+            padding: 0 15px;
+        }
+
+        .page-title { text-align: left; margin-bottom: 25px; font-size: 1.8rem; }
+        .page-title span { color: var(--accent); }
+
+        /* Post Cards */
+        .post-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            overflow: hidden;
+            display: none;
+            transition: background 0.3s, border 0.3s;
+        }
+
+        .post-card.visible { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .post-header { display: flex; align-items: center; padding: 14px 16px; }
+        .user-avatar { width: 38px; height: 38px; border-radius: 50%; margin-right: 12px; border: 2px solid var(--accent); object-fit: cover; }
+        .username { font-weight: 700; font-size: 0.95rem; }
+
+        .post-image-wrapper { position: relative; width: 100%; aspect-ratio: 4/5; overflow: hidden; background: #e4e6eb;}
+        .post-image { width: 100%; height: 100%; object-fit: cover; }
+
+        .post-content { padding: 16px; }
+        .post-actions { display: flex; justify-content: space-between; margin-bottom: 12px; }
+        .actions-left { display: flex; gap: 18px; }
+        .action-btn { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-main); transition: transform 0.1s; }
+        .action-btn:active { transform: scale(0.9); }
+        
+        .like-btn.active i { color: var(--accent); font-weight: 900; }
+        .bookmark-btn.active i { color: #f1c40f; font-weight: 900; }
+
+        .likes-count { font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; }
+        .description { font-size: 0.95rem; line-height: 1.4; margin-bottom: 12px; }
+        .description strong { margin-right: 6px; }
+
+        /* Comments Styling */
+        .comments-area {
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+        
+        .comments-list { list-style: none; max-height: 120px; overflow-y: auto; margin-bottom: 12px; }
+        .comments-list li { font-size: 0.88rem; margin-bottom: 6px; line-height: 1.3; }
+        .comments-list li strong { margin-right: 5px; }
+
+        .comment-form { display: flex; gap: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+        .comment-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+        .comment-submit {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.9rem;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        .comment-input:not(:placeholder-shown) + .comment-submit { opacity: 1; }
+
+        /* Sidebar Component */
+        .sidebar { position: sticky; top: 100px; height: fit-content; }
+        .sidebar-widget {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .widget-title { font-size: 1rem; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .trending-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.9rem; }
+        .trending-item span { color: var(--text-muted); font-size: 0.8rem; }
+        .trending-tag { font-weight: 600; cursor: pointer; }
+        .trending-tag:hover { color: var(--accent); }
+
+        .suggestion-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .profile-info { display: flex; align-items: center; gap: 10px; }
+        .profile-info img { width: 32px; height: 32px; border-radius: 50%; }
+        .follow-btn { background: none; border: none; color: #0095f6; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 850px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .navbar { padding: 0.8rem 5%; }
+            .search-container { width: 40%; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo" onclick="filterCategory('home')">Trend<span>Verse</span></div>
+        <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search creators or descriptions...">
+        </div>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li class="tab-link active" onclick="filterCategory('home')">Home</li>
+                <li class="tab-link" onclick="filterCategory('cosmetics')">Cosmetics</li>
+                <li class="tab-link" onclick="filterCategory('animals')">Animals</li>
+                <li class="tab-link" onclick="filterCategory('food')">Recipes</li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main class="main-layout">
+        
+        <section class="feed-container">
+            <div class="page-title"><h1 id="pageHeading">🔥 Viral <span>Trending</span></h1></div>
+
+            <article class="post-card home visible" data-likes="1200000">
+                <div class="post-header">
+                    <img src="https://i.pravatar.cc/100?u=1" class="user-avatar" alt="User">
+                    <span class="username">viral_master</span>
+                </div>
+                <div class="post-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600" class="post-image" alt="Tech setup">
+                </div>
+                <div class="post-content">
+                    <div class="post-actions">
+                        <div class="actions-left">
+                            <button class="action-btn like-btn" onclick="toggleLike(this)"><i class="far fa-heart"></i></button>
+                            <button class="action-btn" onclick="focusCommentInput(this)"><i class="far fa-comment"></i></button>
+                        </div>
+                        <button class="action-btn bookmark-btn" onclick="toggleBookmark(this)"><i class="far fa-bookmark"></i></button>
+                    </div>
+                    <div class="likes-count">1,200,000 likes</div>
+                    <p class="description"><strong>viral_master</strong> The future of tech is here. Check out this workspace clean layout! Absolute dream setup.</p>
+                    
+                    <div class="comments-area">
+                        <ul class="comments-list">
+                            <li><strong>dev_mindset</strong> Clean cable management! Teach me your secrets.</li>
+                            <li><strong>setup_goals</strong> That display setup is absolute perfection.</li>
+                        </ul>
+                        <form class="comment-form" onsubmit="handleCommentSubmit(event, this)">
+                            <input type="text" class="comment-input" placeholder="Add a comment...">
+                            <button type="submit" class="comment-submit">Post</button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+
+            <article class="post-card cosmetics visible" data-likes="45000">
+                <div class="post-header">
+                    <img src="https://i.pravatar.cc/100?u=2" class="user-avatar" alt="User">
+                    <span class="username">glam_reviewer</span>
+                </div>
+                <div class="post-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=600" class="post-image" alt="Premium Lipstick Overview">
+                </div>
+                <div class="post-content">
+                    <div class="post-actions">
+                        <div class="actions-left">
+                            <button class="action-btn like-btn" onclick="toggleLike(this)"><i class="far fa-heart"></i></button>
+                            <button class="action-btn" onclick="focusCommentInput(this)"><i class="far fa-comment"></i></button>
+                        </div>
+                        <button class="action-btn bookmark-btn" onclick="toggleBookmark(this)"><i class="far fa-bookmark"></i></button>
+                    </div>
+                    <div class="likes-count">45,000 likes</div>
+                    <p class="description"><strong>glam_reviewer</strong> This lipstick stay-power is insane. 12 hours and no smudge at all! #CosmeticsReview</p>
+                    
+                    <div class="comments-area">
+                        <ul class="comments-list">
+                            <li><strong>beauty_by_xo</strong> Need to buy this shade ASAP! What number is it?</li>
+                        </ul>
+                        <form class="comment-form" onsubmit="handleCommentSubmit(event, this)">
+                            <input type="text" class="comment-input" placeholder="Add a comment...">
+                            <button type="submit" class="comment-submit">Post</button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+
+            <article class="post-card animals visible" data-likes="892000">
+                <div class="post-header">
+                    <img src="https://i.pravatar.cc/100?u=3" class="user-avatar" alt="User">
+                    <span class="username">nature_hub</span>
+                </div>
+                <div class="post-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1517849845537-4d257902454a?w=600" class="post-image" alt="Puppy">
+                </div>
+                <div class="post-content">
+                    <div class="post-actions">
+                        <div class="actions-left">
+                            <button class="action-btn like-btn" onclick="toggleLike(this)"><i class="far fa-heart"></i></button>
+                            <button class="action-btn" onclick="focusCommentInput(this)"><i class="far fa-comment"></i></button>
+                        </div>
+                        <button class="action-btn bookmark-btn" onclick="toggleBookmark(this)"><i class="far fa-bookmark"></i></button>
+                    </div>
+                    <div class="likes-count">892,000 likes</div>
+                    <p class="description"><strong>nature_hub</strong> Look at this happy pup! Animals truly are our best friends. Send a 🐾 if you agree!</p>
+                    
+                    <div class="comments-area">
+                        <ul class="comments-list">
+                            <li><strong>pawsome_life</strong> Look at those beautiful expressive eyes! 😍</li>
+                            <li><strong>sam_t</strong> Golden boy brings instant serotonin boost.</li>
+                        </ul>
+                        <form class="comment-form" onsubmit="handleCommentSubmit(event, this)">
+                            <input type="text" class="comment-input" placeholder="Add a comment...">
+                            <button type="submit" class="comment-submit">Post</button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+
+            <article class="post-card food visible" data-likes="12500">
+                <div class="post-header">
+                    <img src="https://i.pravatar.cc/100?u=4" class="user-avatar" alt="User">
+                    <span class="username">chef_daily</span>
+                </div>
+                <div class="post-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600" class="post-image" alt="Salmon Bowl">
+                </div>
+                <div class="post-content">
+                    <div class="post-actions">
+                        <div class="actions-left">
+                            <button class="action-btn like-btn" onclick="toggleLike(this)"><i class="far fa-heart"></i></button>
+                            <button class="action-btn" onclick="focusCommentInput(this)"><i class="far fa-comment"></i></button>
+                        </div>
+                        <button class="action-btn bookmark-btn" onclick="toggleBookmark(this)"><i class="far fa-bookmark"></i></button>
+                    </div>
+                    <div class="likes-count">12,500 likes</div>
+                    <p class="description"><strong>chef_daily</strong> Healthy Crispy Salmon Bowl: 20 mins total. High protein and absolutely delicious. 🥗</p>
+                    
+                    <div class="comments-area">
+                        <ul class="comments-list">
+                            <li><strong>fit_and_fed</strong> Cooking this for dinner tonight!</li>
+                        </ul>
+                        <form class="comment-form" onsubmit="handleCommentSubmit(event, this)">
+                            <input type="text" class="comment-input" placeholder="Add a comment...">
+                            <button type="submit" class="comment-submit">Post</button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <aside class="sidebar">
+            <div class="sidebar-widget">
+                <div class="widget-title"><i class="fas fa-chart-line" style="color: var(--accent)"></i> Trending Topics</div>
+                <div class="trending-item">
+                    <div class="trending-tag" onclick="quickSearch('#CosmeticsReview')">#CosmeticsReview</div>
+                    <span>48.2k reads</span>
+                </div>
+                <div class="trending-item">
+                    <div class="trending-tag" onclick="quickSearch('setup')">#DreamSetup</div>
+                    <span>124k reads</span>
+                </div>
+                <div class="trending-item">
+                    <div class="trending-tag" onclick="quickSearch('Salmon')">#HealthyRecipes</div>
+                    <span>89k reads</span>
+                </div>
+            </div>
+
+            <div class="sidebar-widget">
+                <div class="widget-title"><i class="fas fa-user-plus" style="color: #0095f6"></i> Suggested Creators</div>
+                <div class="suggestion-item">
+                    <div class="profile-info">
+                        <img src="https://i.pravatar.cc/100?u=9" alt="User">
+                        <strong>tech_insider</strong>
+                    </div>
+                    <button class="follow-btn" onclick="this.innerText = this.innerText==='Follow'?'Following':'Follow'">Follow</button>
+                </div>
+                <div class="suggestion-item">
+                    <div class="profile-info">
+                        <img src="https://i.pravatar.cc/100?u=12" alt="User">
+                        <strong>baking_wonder</strong>
+                    </div>
+                    <button class="follow-btn" onclick="this.innerText = this.innerText==='Follow'?'Following':'Follow'">Follow</button>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        let currentCategory = 'home';
+
+        // 1. Interactive Theme Toggle
+        function toggleTheme() {
+            const body = document.documentElement;
+            const themeIcon = document.querySelector('#themeToggle i');
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                themeIcon.className = 'fas fa-moon';
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeIcon.className = 'fas fa-sun';
+            }
+        }
+
+        // 2. Real Incremental Like System
+        function toggleLike(btn) {
+            const postCard = btn.closest('.post-card');
+            const likesCountEl = postCard.querySelector('.likes-count');
+            let totalLikes = parseInt(postCard.getAttribute('data-likes'), 10);
+            
+            btn.classList.toggle('active');
+            
+            if(btn.classList.contains('active')) {
+                totalLikes += 1;
+            } else {
+                totalLikes -= 1;
+            }
+            
+            postCard.setAttribute('data-likes', totalLikes);
+            likesCountEl.innerText = totalLikes.toLocaleString() + " likes";
+        }
+
+        // 3. Bookmark Toggle
+        function toggleBookmark(btn) {
+            btn.classList.toggle('active');
+        }
+
+        // 4. Smooth Category Tab System
+        function filterCategory(category) {
+            currentCategory = category;
+            const posts = document.querySelectorAll('.post-card');
+            const tabs = document.querySelectorAll('.tab-link');
+            const heading = document.getElementById('pageHeading');
+            document.getElementById('searchInput').value = ''; 
+
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                if(tab.innerText.toLowerCase() === category) tab.classList.add('active');
+                if(category === 'home' && tab.innerText === 'Home') tab.classList.add('active');
+            });
+
+            heading.innerHTML = category === 'home' ? '🔥 Viral <span>Trending</span>' : `✨ ${category.toUpperCase()} <span>Feed</span>`;
+
+            posts.forEach(post => {
+                if (category === 'home' || post.classList.contains(category)) {
+                    post.classList.add('visible');
+                } else {
+                    post.classList.remove('visible');
+                }
+            });
+        }
+
+        // 5. Smart Search Engine
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            const posts = document.querySelectorAll('.post-card');
+            
+            posts.forEach(post => {
+                const isInCategory = (currentCategory === 'home' || post.classList.contains(currentCategory));
+                const textMatch = post.innerText.toLowerCase().includes(term);
+                
+                if (isInCategory && textMatch) {
+                    post.classList.add('visible');
+                } else {
+                    post.classList.remove('visible');
+                }
+            });
+        });
+
+        // 6. Sidebar quick search utility
+        function quickSearch(value) {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = value;
+            searchInput.dispatchEvent(new Event('input'));
+        }
+
+        // 7. Inline Dynamic Comments Execution
+        function focusCommentInput(btn) {
+            const card = btn.closest('.post-card');
+            card.querySelector('.comment-input').focus();
+        }
+
+        function handleCommentSubmit(event, form) {
+            event.preventDefault();
+            const input = form.querySelector('.comment-input');
+            const commentText = input.value.trim();
+            
+            if (commentText !== "") {
+                const commentsList = form.closest('.post-content').querySelector('.comments-list');
+                const newLi = document.createElement('li');
+                newLi.innerHTML = `<strong>you</strong> ${commentText}`;
+                commentsList.appendChild(newLi);
+                
+                commentsList.scrollTop = commentsList.scrollHeight;
+                input.value = "";
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- Theme Variables --- */
+        :root[data-theme="dark"] {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --income: #10b981;
+            --expense: #ef4444;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --border: rgba(255, 255, 255, 0.08);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        :root[data-theme="emerald"] {
+            --bg-gradient: linear-gradient(135deg, #022c22 0%, #064e3b 100%);
+            --card-bg: rgba(6, 78, 59, 0.5);
+            --text-main: #f0fdf4;
+            --text-muted: #a7f3d0;
+            --income: #34d399;
+            --expense: #f87171;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --border: rgba(52, 211, 153, 0.15);
+            --shadow: 0 8px 32px 0 rgba(2, 44, 34, 0.5);
+        }
+
+        /* --- Base Layout --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            transition: background 0.4s ease, color 0.3s ease;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg-gradient);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 550px;
+            border-radius: 24px;
+            padding: 30px;
+            color: var(--text-main);
+        }
+
+        /* --- Header & Themes --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .theme-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .theme-btn:hover, .theme-btn.active {
+            background: var(--accent);
+            color: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 0 12px var(--accent);
+        }
+
+        /* --- Balance & Summary Widgets --- */
+        .balance-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .balance-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .balance-card h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .summary-grid {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .summary-box {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .summary-box i {
+            font-size: 1.5rem;
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .summary-box.income-box i { color: var(--income); }
+        .summary-box.expense-box i { color: var(--expense); }
+
+        .summary-box div p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .summary-box div h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* --- Transaction Form --- */
+        #tracker-form {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        input, select {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            padding: 12px 15px;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+            width: 100%;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        select option {
+            background: #1e293b;
+            color: #fff;
+        }
+
+        #add-btn {
+            grid-column: span 2;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        #add-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        /* --- History List --- */
+        .history-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        #transaction-list {
+            list-style: none;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        #transaction-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        #transaction-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border-radius: 14px;
+            margin-bottom: 8px;
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .transaction-item.income-item { border-left: 4px solid var(--income); }
+        .transaction-item.expense-item { border-left: 4px solid var(--expense); }
+
+        .tx-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tx-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .tx-type-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: capitalize;
+        }
+
+        .tx-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tx-amount {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .income-item .tx-amount { color: var(--income); }
+        .expense-item .tx-amount { color: var(--expense); }
+
+        .delete-tx-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .transaction-item:hover .delete-tx-btn {
+            opacity: 1;
+        }
+
+        .delete-tx-btn:hover {
+            color: #ef4444;
+            transform: scale(1.1);
+        }
+
+        .transaction-item.fall {
+            animation: fallOut 0.3s ease forwards;
+        }
+
+        @keyframes fallOut {
+            to { opacity: 0; transform: translateX(30px); }
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <header>
+            <h1>Ledgerly Dashboard</h1>
+            <div class="theme-selector">
+                <button class="theme-btn active" data-theme="dark" title="Modern Dark"><i class="fas fa-moon"></i></button>
+                <button class="theme-btn" data-theme="emerald" title="Emerald Minimalist"><i class="fas fa-leaf"></i></button>
+            </div>
+        </header>
+
+        <div class="balance-card">
+            <p>Net Balance</p>
+            <h2 id="balance-amount">$0.00</h2>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-box income-box">
+                <i class="fas fa-arrow-trend-up"></i>
+                <div>
+                    <p>Income</p>
+                    <h3 id="income-amount">$0.00</h3>
+                </div>
+            </div>
+            <div class="summary-box expense-box">
+                <i class="fas fa-arrow-trend-down"></i>
+                <div>
+                    <p>Expenses</p>
+                    <h3 id="expense-amount">$0.00</h3>
+                </div>
+            </div>
+        </div>
+
+        <form id="tracker-form">
+            <div class="input-group">
+                <input type="text" id="tx-description" placeholder="Description (e.g., Grocery, Salary)" required autocomplete="off">
+            </div>
+            <div class="input-group">
+                <select id="tx-type">
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                </select>
+            </div>
+            <div class="input-group" style="grid-column: span 2;">
+                <input type="number" id="tx-amount" placeholder="Amount ($)" step="0.01" min="0.01" required autocomplete="off">
+            </div>
+            <button type="submit" id="add-btn">Log Transaction</button>
+        </form>
+
+        <h3 class="history-header">History Logs</h3>
+        <ul id="transaction-list">
+            </ul>
+    </div>
+
+    <script>
+        // DOM Elements Configuration
+        const trackerForm = document.getElementById('tracker-form');
+        const txDescription = document.getElementById('tx-description');
+        const txType = document.getElementById('tx-type');
+        const txAmount = document.getElementById('tx-amount');
+        const transactionList = document.getElementById('transaction-list');
+        
+        const balanceAmount = document.getElementById('balance-amount');
+        const incomeAmount = document.getElementById('income-amount');
+        const expenseAmount = document.getElementById('expense-amount');
+        const themeBtns = document.querySelectorAll('.theme-btn');
+
+        // State Core Engine Storage Configuration
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+        // Application Lifecycle Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDashboard();
+            setupThemeEngine();
+        });
+
+        // Interface Theme Switcher Engine 
+        themeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                themeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const theme = btn.getAttribute('data-theme');
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('tracker-selected-theme', theme);
+            });
+        });
+
+        function setupThemeEngine() {
+            const savedTheme = localStorage.getItem('tracker-selected-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            themeBtns.forEach(btn => {
+                if(btn.getAttribute('data-theme') === savedTheme) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // Action Processor: Log New Transaction Entries
+        trackerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const text = txDescription.value.trim();
+            const type = txType.value;
+            const amount = parseFloat(txAmount.value);
+
+            if (!text || isNaN(amount)) return;
+
+            const transaction = {
+                id: Date.now(),
+                text: text,
+                type: type,
+                amount: amount
+            };
+
+            transactions.push(transaction);
+            saveAndUpdateDashboard();
+            
+            // Clear fields safely
+            txDescription.value = '';
+            txAmount.value = '';
+        });
+
+        // Action Processor: Delete Log Entries with Transitions
+        transactionList.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('.delete-tx-btn');
+            if (!deleteBtn) return;
+
+            const itemRow = deleteBtn.closest('.transaction-item');
+            const targetId = parseInt(itemRow.dataset.id);
+
+            itemRow.classList.add('fall');
+            itemRow.addEventListener('animationend', () => {
+                transactions = transactions.filter(tx => tx.id !== targetId);
+                saveAndUpdateDashboard();
+            });
+        });
+
+        // Metrics Core Mathematical Computations Engine
+        function updateDashboard() {
+            transactionList.innerHTML = '';
+
+            if (transactions.length === 0) {
+                transactionList.innerHTML = '<div class="empty-state">No transaction logs available.</div>';
+                balanceAmount.textContent = '$0.00';
+                incomeAmount.textContent = '$0.00';
+                expenseAmount.textContent = '$0.00';
+                return;
+            }
+
+            let totalIncome = 0;
+            let totalExpenses = 0;
+
+            transactions.forEach(tx => {
+                if (tx.type === 'income') {
+                    totalIncome += tx.amount;
+                } else {
+                    totalExpenses += tx.amount;
+                }
+                renderTransactionRow(tx);
+            });
+
+            const totalBalance = totalIncome - totalExpenses;
+
+            // Interface Rendering Data Metrics formatting
+            balanceAmount.textContent = `${totalBalance < 0 ? '-' : ''}$${Math.abs(totalBalance).toFixed(2)}`;
+            incomeAmount.textContent = `$${totalIncome.toFixed(2)}`;
+            expenseAmount.textContent = `$${totalExpenses.toFixed(2)}`;
+        }
+
+        // Document Fragment DOM Generation Logic
+        function renderTransactionRow(tx) {
+            const li = document.createElement('li');
+            li.className = `transaction-item ${tx.type}-item`;
+            li.dataset.id = tx.id;
+
+            const sign = tx.type === 'income' ? '+' : '-';
+
+            li.innerHTML = `
+                <div class="tx-details">
+                    <span class="tx-title">${escapeSecurityHTML(tx.text)}</span>
+                    <span class="tx-type-label">${tx.type}</span>
+                </div>
+                <div class="tx-right">
+                    <span class="tx-amount">${sign}$${tx.amount.toFixed(2)}</span>
+                    <button class="delete-tx-btn" title="Delete Log">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            transactionList.appendChild(li);
+        }
+
+        function saveAndUpdateDashboard() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            updateDashboard();
+        }
+
+        // XSS Script Injection Mitigation Function
+        function escapeSecurityHTML(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
